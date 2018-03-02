@@ -12,12 +12,24 @@
 PACKER_CHECK=$(find /usr/bin -type f -name "packer" -ls)
 TERRAFORM_CHECK=$(find /usr/bin -type f -name "terraform" -ls)
 VAULT_CHECK=$(find /usr/bin -type f -name "vault" -ls)
+CONSUL_BIN=$(which consul)
+CONSUL_VER="1.0.6"
 PACKER_VERSION="1.1.3"
 VAULT_VERSION="0.9.1"
 TERRAFORM_VERSION="0.11.2"
 PWD=$(pwd)
-
 #https://unix.stackexchange.com/questions/323203/check-if-multiple-directories-exist-with-bash-script
+
+Consul () }{
+  if [ "$Consul" ]; then 
+  echo "Consul binary found proceeding to verify install"
+  consul -v
+  else
+  https://releases.hashicorp.com/consul/$CONSUL_VER/consul_"$CONSUL_VER"_linux_amd64.zip
+  unzip consul_"$CONSUL_VER"_linux_amd64.zip -d /usr/bin
+  wget  
+  fi
+}
 
 Packer () {
     cat << EOF
@@ -92,7 +104,7 @@ EOF
 
 sleep 2 
 
-cat << EOF 
+cat << EOF
 ############################################ 
 For more information on the values used in the example.json file 
 see https://www.packer.io/docs/builders/amazon-ebs.html which describes 
@@ -104,7 +116,7 @@ https://www.packer.io/docs/builders/amazon.html
 For template functions 
 https://www.packer.io/docs/templates/engine.html
 ############################################ 
-EOF 
+EOF
 
 sleep 10
 
@@ -186,6 +198,7 @@ packer_example_jason_with_provisioner () {
   }]
 }
 EOF
+
 cat << EOF
 ############################################ 
 Validating packer file, please do not panic if this fails, 
@@ -193,6 +206,7 @@ this is becuase the aws_access_key and aws_secret_key have not
 been defined"
 ############################################ 
 EOF
+
 sleep 2
 #the above example includes the reddis server on the image 
 #by provisioning the image with it i.e it is baked into the AMI
@@ -213,7 +227,7 @@ EOF
 
 sleep 2 
 
-cat << EOF 
+cat << EOF
 ############################################ 
 For more information on the values used in the example.json file 
 see https://www.terraform.io/docs/configuration/syntax.html which describes 
@@ -227,7 +241,7 @@ or IAM instance profile credentials
 variables are defined here 
 https://www.terraform.io/intro/getting-started/variables.html
 ############################################ 
-EOF 
+EOF
 
 sleep 20
 
@@ -262,45 +276,7 @@ sleep 10
 terraform init
 }
 
-
-Vagrant () {
-  cat << EOF 
-############################################
-installing vagrant 64 for centOS/Debian
-############################################
-EOF
-
-sleep 2 
-
-OS_CHECK_DEBIAN=$(grep ID_LIKE="debian" /etc/os-release)
-OS_CHECK_CENTOS=$(grep -E 'ID="centos"' /etc/os-release)
-VAGRANT_VERSION="2.0.1"
-
-if [ "$OS_CHECK_DEBIAN" ]; then 
-  echo "Detected system is Debian based"
-sleep 1 
-  echo "Grabbing vagrant file from Hashicorp"
-sleep 1 
-  wget https://releases.hashicorp.com/vagrant/$VAGRANT_VERSION/vagrant_"$VAGRANT_VERSION"_x86_64.deb
-  echo "installing vagrant"
-sleep 1 
-  dpkg -i vagrant_"$VAGRANT_VERSION"_x86_64.deb
-  vagrant #vagrant automatically installs the binarys in /usr/bin $PATH for execution, you can check via find  /usr/bin/ -name "vagrant"
-elif [ "$OS_CHECK_CENTOS" ]; then 
-  echo "Detected system is CentOS based"
-  curl --remote-name https://releases.hashicorp.com/vagrant/$VAGRANT_VERSION/vagrant_"$VAGRANT_VERSION"_x86_64.rpm #--remote-name is the same -O and specifies output on CentOS as there is no wget installed by deafult
-  echo "installing vagrant"
-sleep 1 
-  sudo rpm -Uvh vagrant_"$VAGRANT_VERSION"_x86_64.rpm
-  vagrant #vagrant automatically installs the binarys in /usr/bin $PATH for execution, you can check via find  /usr/bin/ -name "vagrant"
-fi
-}
-
-
-
-
-
-cat << "EOF"
+cat << EOF
 ############################################
 This script is desighned  to installed the 
 Packer, vault and Terraform binaries in 
@@ -330,4 +306,4 @@ EOF
 Packer
 Vault
 Terraform
-Vagrant
+Consul

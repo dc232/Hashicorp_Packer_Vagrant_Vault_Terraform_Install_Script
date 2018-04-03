@@ -20,7 +20,7 @@ TERRAFORM_VERSION="0.11.2"
 PWD=$(pwd)
 #https://unix.stackexchange.com/questions/323203/check-if-multiple-directories-exist-with-bash-script
 
-Consul () }{
+Consul () {
   if [ "$Consul" ]; then 
   echo "Consul binary found proceeding to verify install"
   consul -v

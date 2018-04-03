@@ -160,7 +160,6 @@ been defined"
 EOF
 sleep 2
 packer validate example.json
-}
 
 
 packer_example_jason_with_provisioner () {

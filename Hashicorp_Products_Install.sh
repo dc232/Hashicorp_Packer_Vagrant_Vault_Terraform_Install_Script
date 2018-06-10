@@ -35,7 +35,7 @@ CONSUL () {
   echo "Unzip installation found downloading Consul"
   sleep 1
   wget https://releases.hashicorp.com/consul/$CONSUL_VER/consul_"$CONSUL_VER"_linux_amd64.zip
-  unzip consul_"$CONSUL_VER"_linux_amd64.zip -d /usr/bin
+  sudo unzip consul_"$CONSUL_VER"_linux_amd64.zip -d /usr/bin
   consul -v
   else
   echo "Installing consul binary and unzip"

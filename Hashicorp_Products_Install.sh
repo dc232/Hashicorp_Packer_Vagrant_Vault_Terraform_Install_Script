@@ -9,25 +9,40 @@
 #the checks below are better examples than SC2010 it aviods errounous information in standard out
 #we can use * to glob everything in the dir but as we are looking for spefic files we do not need *packer*
 #for example
-PACKER_CHECK=$(find /usr/bin -type f -name "packer" -ls)
-TERRAFORM_CHECK=$(find /usr/bin -type f -name "terraform" -ls)
-VAULT_CHECK=$(find /usr/bin -type f -name "vault" -ls)
+
+
+
+#PACKER_CHECK=$(find /usr/bin -type f -name "packer" -ls)
+PACKER_CHECK=$(which packer)
+#TERRAFORM_CHECK=$(find /usr/bin -type f -name "terraform" -ls)
+TERRAFORM_CHECK=$(which terraform)
+#VAULT_CHECK=$(find /usr/bin -type f -name "vault" -ls)
 CONSUL_BIN=$(which consul)
-CONSUL_VER="1.0.6"
-PACKER_VERSION="1.1.3"
-VAULT_VERSION="0.9.1"
-TERRAFORM_VERSION="0.11.2"
+CONSUL_VER=$(curl https://releases.hashicorp.com/consul/ | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | sed -n '1p' | sed -e 's/[ \t]*//' | sed 's/terraform//g' | sed 's/"//g' |  sed -e 's/[ \t]*//' | sed -e 's#/$##' | sed 's/>//2' | sed 's/^.*_//' | sed 's/<//' | sed 's/a//' | sed -e 's#/$##')
+PACKER_VERSION=$(curl https://releases.hashicorp.com/packer/ | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | sed -n '1p' | sed -e 's/[ \t]*//' | sed 's/terraform//g' | sed 's/"//g' |  sed -e 's/[ \t]*//' | sed -e 's#/$##' | sed 's/>//2' | sed 's/^.*_//' | sed 's/<//' | sed 's/a//' | sed -e 's#/$##')
+VAULT_VERSION=$(curl https://releases.hashicorp.com/vault/ | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | sed -n '1p' | sed -e 's/[ \t]*//' | sed 's/terraform//g' | sed 's/"//g' |  sed -e 's/[ \t]*//' | sed -e 's#/$##' | sed 's/>//2' | sed 's/^.*_//' | sed 's/<//' | sed 's/a//' | sed -e 's#/$##')
+TERRAFORM_VERSION=$(curl https://releases.hashicorp.com/terraform/ | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | sed -n '1p' | sed -e 's/[ \t]*//' | sed 's/terraform//g' | sed 's/"//g' |  sed -e 's/[ \t]*//' | sed -e 's#/$##' | sed 's/>//2' | sed 's/^.*_//' | sed 's/<//' | sed 's/a//' | sed -e 's#/$##')
 PWD=$(pwd)
 #https://unix.stackexchange.com/questions/323203/check-if-multiple-directories-exist-with-bash-script
 
-Consul () {
-  if [ "$Consul" ]; then 
+CONSUL () {
+  if [ "$CONSUL_BIN" ]; then 
   echo "Consul binary found proceeding to verify install"
   consul -v
-  else
-  https://releases.hashicorp.com/consul/$CONSUL_VER/consul_"$CONSUL_VER"_linux_amd64.zip
+  UNZIP_INSTALLED=$(which unzip)
+  elif [ "$UNZIP_INSTALLED" ]; then
+  echo "Unzip installation found downloading Consul"
+  sleep 1
+  wget https://releases.hashicorp.com/consul/$CONSUL_VER/consul_"$CONSUL_VER"_linux_amd64.zip
   unzip consul_"$CONSUL_VER"_linux_amd64.zip -d /usr/bin
-  wget  
+  consul -v
+  else
+  echo "Installing consul binary and unzip"
+  sleep 1
+  sudo apt install unzip -y
+  wget https://releases.hashicorp.com/consul/$CONSUL_VER/consul_"$CONSUL_VER"_linux_amd64.zip
+  unzip consul_"$CONSUL_VER"_linux_amd64.zip -d /usr/bin
+  consul -v
   fi
 }
 
@@ -38,14 +53,23 @@ Retriving Packer package
 ############################################
 EOF
 
-wget https://releases.hashicorp.com/packer/$PACKER_VERSION/packer_"$PACKER_VERSION"_linux_amd64.zip
-sudo unzip packer_"$PACKER_VERSION"_linux_amd64.zip -d /usr/bin
-
 if [ "$PACKER_CHECK" ]; then
 echo "verifying packer installation"
-packer
+sleep 1
+packer version
+elif [ "$UNZIP_INSTALLED" ]; then
+wget https://releases.hashicorp.com/consul/$PACKER_VERSION/consul_"$PACKER_VERSION"_linux_amd64.zip
+sudo unzip packer_"$PACKER_VERSION"_linux_amd64.zip -d /usr/bin
+echo "Checking packer installation"
+sleep 1
 packer version
 else
+echo "Installing Packer binary and unzip"
+sleep 1
+sudo apt install unzip -y
+wget https://releases.hashicorp.com/packer/$PACKER_VERSION/packer_"$PACKER_VERSION"_linux_amd64.zip
+sudo unzip packer_"$PACKER_VERSION"_linux_amd64.zip -d /usr/bin
+packer version
 echo "packer has not been downladed properly"
 fi
 }
@@ -59,15 +83,27 @@ Installing vault
 EOF
 sleep 2
 
-wget https://releases.hashicorp.com/vault/$VAULT_VERSION/vault_"$VAULT_VERSION"_linux_amd64.zip
-sudo unzip vault_"$VAULT_VERSION"_linux_amd64.zip -d /usr/bin
+
 
 if [ "$VAULT_CHECK" ]; then
 echo "verifying vault installation"
-vault
+sleep 1
+vault -h
+elif [ "$UNZIP_INSTALLED" ]; then
+wget https://releases.hashicorp.com/vault/$VAULT_VERSION/vault_"$VAULT_VERSION"_linux_amd64.zip
+sudo unzip vault_"$VAULT_VERSION"_linux_amd64.zip -d /usr/bin
+echo "Checking vault installation"
+sleep 1
 vault -h
 else
-echo "packer has not been downladed properly"
+echo "Installing vault binary and unzip"
+sleep 1
+sudo apt install unzip -y
+wget https://releases.hashicorp.com/vault/$VAULT_VERSION/vault_"$VAULT_VERSION"_linux_amd64.zip
+sudo unzip vault_"$VAULT_VERSION"_linux_amd64.zip -d /usr/bin
+echo "Checking Vault installation"
+sleep 1
+vault -h
 fi
 }
 
@@ -79,19 +115,28 @@ Installing Terraform
 EOF
 sleep 2
 
-wget https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
-sudo unzip terraform_"$TERRAFORM_VERSION"_linux_amd64.zip -d /usr/bin
-
 #change the if statements around if they are not installed the finds will not find the file and hence move to the else statemet
-if [ "$TERRAFORM_CHECK" ]; then
-echo "verifying Terraform installation"
-terraform
-else
-echo "Terraform has not been downladed properly"
-fi
+  if [ "$TERRAFORM_CHECK" ]; then 
+  echo "terraform binary found proceeding to verify install"
+  terraform
+  UNZIP_INSTALLED=$(which unzip)
+  elif [ "$UNZIP_INSTALLED" ]; then
+  echo "Unzip installation found downloading terraform"
+  sleep 1
+  wget https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
+  sudo unzip terraform_"$TERRAFORM_VERSION"_linux_amd64.zip -d /usr/bin
+  terraform -v
+  else
+  echo "Installing terraform binary and unzip"
+  sleep 1
+  sudo apt install unzip -y
+  wget https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
+  sudo unzip terraform_"$TERRAFORM_VERSION"_linux_amd64.zip -d /usr/bin
+  terraform
+  fi
 }
 
-packer_example_jason {
+packer_example_jason () {
     cat << EOF
 ############################################
 Installing example packer script 
@@ -109,10 +154,8 @@ cat << EOF
 For more information on the values used in the example.json file 
 see https://www.packer.io/docs/builders/amazon-ebs.html which describes 
 how to build a amazon-ebs image
-
 For other type of builds such as amazon-instance or amazon-chroot see 
 https://www.packer.io/docs/builders/amazon.html
-
 For template functions 
 https://www.packer.io/docs/templates/engine.html
 ############################################ 
@@ -160,7 +203,7 @@ been defined"
 EOF
 sleep 2
 packer validate example.json
-
+}
 
 packer_example_jason_with_provisioner () {
     cat << EOF >>example.json
@@ -236,7 +279,6 @@ file format if the configuration was created by a machine
 it should also be noted that if the access_key and secret_key are not speficied
 then terraform will look for saved API credentials possiblt in the ~/.aws/credentials
 or IAM instance profile credentials
-
 variables are defined here 
 https://www.terraform.io/intro/getting-started/variables.html
 ############################################ 
@@ -250,7 +292,6 @@ provider "aws" {
   secret_key = "SECRET_KEY_HERE"
   region     = "us-west-2"
 }
-
 resource "aws_instance" "example" {
   ami           = "ami-2757f631"
   instance_type = "t2.micro"
@@ -305,4 +346,4 @@ EOF
 Packer
 Vault
 Terraform
-Consul
+CONSUL

@@ -41,7 +41,7 @@ CONSUL () {
   sleep 1
   sudo apt install unzip -y
   wget https://releases.hashicorp.com/consul/$CONSUL_VER/consul_"$CONSUL_VER"_linux_amd64.zip
-  unzip consul_"$CONSUL_VER"_linux_amd64.zip -d /usr/bin
+  sudo unzip consul_"$CONSUL_VER"_linux_amd64.zip -d /usr/bin
   consul -v
   fi
 }
